@@ -2,6 +2,8 @@
 
 Website pribadi keluarga untuk menghitung umur Papa, Mama, dan Anak secara live sampai hitungan detik menggunakan zona waktu WIB.
 
+Production: [https://family.imyourz.com/](https://family.imyourz.com/)
+
 Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, login, maupun dependency runtime. Data keluarga disimpan langsung di source code agar halaman dapat dibuka dan dideploy sebagai static site.
 
 ## Fitur
@@ -19,6 +21,7 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 - Setiap kali rincian dibuka, keenam total dianimasikan dari nol menuju nilai terkini; panel juga membuka dan menutup dengan lembut.
 - Dukungan untuk menambahkan anak kedua, ketiga, dan seterusnya melalui satu array data.
 - Validasi untuk tanggal lahir yang tidak valid atau berada di masa depan.
+- Metadata SEO, canonical URL, structured data, robots, dan sitemap untuk mesin pencari.
 
 ## Data keluarga saat ini
 
@@ -35,7 +38,7 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 - JavaScript module (`.mjs`)
 - `Intl.DateTimeFormat` untuk format WIB dan bahasa Indonesia
 - Node.js built-in test runner (`node:test`)
-- Vercel rewrite untuk deployment static site
+- Vercel untuk deployment static site
 
 Tidak ada package runtime atau dependency eksternal yang perlu di-install.
 
@@ -48,7 +51,10 @@ family-timeline/
 ├── style.css                          # Tampilan jurnal dan responsive layout
 ├── script.mjs                         # Data, kalkulasi umur, dan renderer DOM
 ├── script.test.mjs                    # Test kalkulasi dengan node:test
-├── vercel.json                        # Konfigurasi rewrite Vercel
+├── seo.test.mjs                       # Test metadata dan file SEO
+├── robots.txt                         # Aturan crawler dan lokasi sitemap
+├── sitemap.xml                        # Daftar URL publik untuk mesin pencari
+├── vercel.json                        # Konfigurasi URL canonical Vercel
 ├── .gitignore                         # File lokal dan hasil generate yang diabaikan Git
 ├── README.md                          # Dokumentasi project
 └── docs/
@@ -83,6 +89,7 @@ Test menggunakan runner bawaan Node.js, jadi tidak membutuhkan `npm install`:
 
 ```bash
 node --test script.test.mjs
+node --test seo.test.mjs
 ```
 
 Pengecekan sintaks dapat dijalankan dengan:
@@ -156,7 +163,13 @@ Project ini tidak membutuhkan build command.
 4. Biarkan build command kosong.
 5. Gunakan root project sebagai output directory.
 
-File [vercel.json](./vercel.json) sudah berisi rewrite agar request diarahkan ke `index.html`.
+File [vercel.json](./vercel.json) menormalkan URL dengan trailing slash. Tidak ada catch-all rewrite, sehingga URL atau file yang tidak tersedia mengembalikan status 404 dengan benar.
+
+## SEO dan indexing Google
+
+Halaman utama memiliki title dan description deskriptif, canonical URL, Open Graph, Twitter Card, serta structured data `WebSite`. File [robots.txt](./robots.txt) mengizinkan crawling dan menunjuk ke [sitemap.xml](./sitemap.xml).
+
+Setelah deployment terbaru aktif, tambahkan domain ke Google Search Console, kirim `https://family.imyourz.com/sitemap.xml`, lalu gunakan URL Inspection untuk meminta indexing halaman utama. Sitemap membantu proses crawling, tetapi tidak menjamin halaman langsung muncul di hasil pencarian.
 
 ## Privasi
 

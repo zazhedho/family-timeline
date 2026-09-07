@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://family.imyourz.com/sitemap.xml
