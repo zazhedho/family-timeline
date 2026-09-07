@@ -1,0 +1,25 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dependencies, build output, and caches
+node_modules/
+dist/
+build/
+coverage/
+.cache/
+.vercel/
+
+# Logs
+*.log
+
+# Local environment files
+.env
+.env.*
+!.env.example
