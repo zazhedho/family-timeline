@@ -44,6 +44,7 @@ Tidak ada package runtime atau dependency eksternal yang perlu di-install.
 ```text
 family-timeline/
 ├── index.html                         # Struktur halaman utama
+├── favicon.svg                        # Ikon silsilah untuk tab browser
 ├── style.css                          # Tampilan jurnal dan responsive layout
 ├── script.mjs                         # Data, kalkulasi umur, dan renderer DOM
 ├── script.test.mjs                    # Test kalkulasi dengan node:test
