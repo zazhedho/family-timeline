@@ -58,16 +58,23 @@ const PEOPLE = [
 ];
 
 const TOTAL_UNITS = [
-  ['seconds', 'Total detik'],
-  ['minutes', 'Total menit'],
-  ['hours', 'Total jam'],
-  ['days', 'Total hari'],
-  ['weeks', 'Total minggu'],
   ['months', 'Total bulan'],
+  ['weeks', 'Total minggu'],
+  ['days', 'Total hari'],
+  ['hours', 'Total jam'],
+  ['minutes', 'Total menit'],
+  ['seconds', 'Total detik'],
 ];
+
+const CHILD_ORDINALS = ['pertama', 'kedua', 'ketiga', 'keempat', 'kelima'];
 
 export function formatNumber(value) {
   return numberFormatter.format(value);
+}
+
+export function interpolateCount(target, progress) {
+  const boundedProgress = Math.min(Math.max(progress, 0), 1);
+  return Math.floor(target * (1 - (1 - boundedProgress) ** 3));
 }
 
 function getWibParts(date) {
@@ -234,14 +241,14 @@ export function formatCalendarAge(calendar) {
   ].join(' · ');
 }
 
-function cardMarkup(person, index) {
+function cardMarkup(person, displayRole = person.role) {
   const totals = TOTAL_UNITS
     .map(([unit, label]) => `<div><dt>${label}</dt><dd data-total="${unit}">0</dd></div>`)
     .join('');
 
   return `
     <article class="person-card" data-person="${person.id}">
-      <p class="person-number">${String(index + 1).padStart(2, '0')} · ${person.role.toUpperCase()}</p>
+      <p class="person-role">${displayRole}</p>
       <h2>${person.name}</h2>
       <p class="birth-date">
         <span class="birth-label">Hari lahir</span>
@@ -265,12 +272,124 @@ function cardMarkup(person, index) {
         </div>
       </div>
       <p class="age-error" data-age-error hidden></p>
-      <details class="totals-disclosure" data-totals-disclosure open>
-        <summary>Total umur dalam semua unit</summary>
+      <details class="totals-disclosure" data-totals-disclosure>
+        <summary>
+          <span class="totals-summary-copy">
+            <span class="totals-summary-title">Rincian total umur</span>
+            <span class="totals-summary-hint">6 satuan waktu</span>
+          </span>
+          <span class="totals-summary-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" focusable="false">
+              <path d="m5 7.5 5 5 5-5" />
+            </svg>
+          </span>
+        </summary>
         <dl class="totals" data-totals>${totals}</dl>
       </details>
     </article>
   `;
+}
+
+function childRole(index, total) {
+  if (total === 1) return 'Anak';
+  return `Anak ${CHILD_ORDINALS[index] ?? `ke-${index + 1}`}`;
+}
+
+const totalCountFrames = new WeakMap();
+
+function stopTotalCount(disclosure) {
+  const frame = totalCountFrames.get(disclosure);
+  if (frame) cancelAnimationFrame(frame);
+  totalCountFrames.delete(disclosure);
+  delete disclosure.dataset.counting;
+}
+
+function animateTotals(disclosure) {
+  stopTotalCount(disclosure);
+
+  const values = [...disclosure.querySelectorAll('[data-total]')];
+  const showFinalValues = () => {
+    for (const value of values) {
+      value.textContent = formatNumber(Number(value.dataset.countValue));
+    }
+    totalCountFrames.delete(disclosure);
+    delete disclosure.dataset.counting;
+  };
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    showFinalValues();
+    return;
+  }
+
+  disclosure.dataset.counting = 'true';
+  values.forEach((value) => { value.textContent = '0'; });
+  const startedAt = performance.now();
+  const duration = 900;
+
+  function update(timestamp) {
+    const progress = Math.min((timestamp - startedAt) / duration, 1);
+    for (const value of values) {
+      value.textContent = formatNumber(
+        interpolateCount(Number(value.dataset.countValue), progress)
+      );
+    }
+
+    if (progress < 1) {
+      totalCountFrames.set(disclosure, requestAnimationFrame(update));
+    }
+    else showFinalValues();
+  }
+
+  totalCountFrames.set(disclosure, requestAnimationFrame(update));
+}
+
+function setupTotalsDisclosure(disclosure) {
+  const summary = disclosure.querySelector('summary');
+  let heightAnimation;
+  let targetOpen = disclosure.open;
+
+  summary.addEventListener('click', (event) => {
+    event.preventDefault();
+    targetOpen = !targetOpen;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reducedMotion || typeof disclosure.animate !== 'function') {
+      heightAnimation?.cancel();
+      disclosure.open = targetOpen;
+      disclosure.classList.remove('is-closing');
+      if (targetOpen) animateTotals(disclosure);
+      else stopTotalCount(disclosure);
+      return;
+    }
+
+    const startHeight = disclosure.offsetHeight;
+    if (targetOpen) {
+      disclosure.open = true;
+      disclosure.classList.remove('is-closing');
+      animateTotals(disclosure);
+    } else {
+      disclosure.classList.add('is-closing');
+      stopTotalCount(disclosure);
+    }
+
+    const borderHeight = disclosure.offsetHeight - disclosure.clientHeight;
+    const endHeight = targetOpen
+      ? disclosure.scrollHeight + borderHeight
+      : summary.offsetHeight + borderHeight;
+
+    heightAnimation?.cancel();
+    disclosure.style.overflow = 'hidden';
+    heightAnimation = disclosure.animate(
+      { height: [`${startHeight}px`, `${endHeight}px`] },
+      { duration: 360, easing: 'cubic-bezier(.22, 1, .36, 1)' }
+    );
+    heightAnimation.onfinish = () => {
+      disclosure.open = targetOpen;
+      disclosure.classList.remove('is-closing');
+      disclosure.style.overflow = '';
+      heightAnimation = null;
+    };
+  });
 }
 
 function render(now = new Date()) {
@@ -282,12 +401,15 @@ function render(now = new Date()) {
     const children = PEOPLE.filter((person) => !['papa', 'mama'].includes(person.id));
     grid.innerHTML = `
       <svg class="family-connections" aria-hidden="true"></svg>
-      <div class="parents-row" role="group" aria-label="Orang tua">${parents.map((person) => cardMarkup(person, PEOPLE.indexOf(person))).join('')}</div>
+      <p class="generation-label">Orang tua</p>
+      <div class="parents-row" role="group" aria-label="Orang tua">${parents.map((person) => cardMarkup(person)).join('')}</div>
       <div class="family-heart" aria-hidden="true">♡</div>
-      <div class="children-row" role="group" aria-label="Anak-anak">${children.map((person) => cardMarkup(person, PEOPLE.indexOf(person))).join('')}</div>`;
+      <p class="generation-label">Anak-anak</p>
+      <div class="children-row" role="group" aria-label="Anak-anak">${children.map((person, index) => cardMarkup(person, childRole(index, children.length))).join('')}</div>`;
     const observer = new ResizeObserver(() => drawConnections(grid));
     observer.observe(grid);
     grid.querySelectorAll('.person-card').forEach((card) => observer.observe(card));
+    grid.querySelectorAll('[data-totals-disclosure]').forEach(setupTotalsDisclosure);
   }
 
   document.querySelector('[data-today]').textContent = todayFormatter.format(now);
@@ -321,7 +443,13 @@ function render(now = new Date()) {
     totalsDisclosure.hidden = false;
     totalsElement.hidden = false;
     for (const [unit] of TOTAL_UNITS) {
-      card.querySelector(`[data-total="${unit}"]`).textContent = formatNumber(result.totals[unit]);
+      const total = card.querySelector(`[data-total="${unit}"]`);
+      total.dataset.countValue = result.totals[unit];
+      if (!totalsDisclosure.open) {
+        total.textContent = '0';
+      } else if (!totalsDisclosure.dataset.counting) {
+        total.textContent = formatNumber(result.totals[unit]);
+      }
     }
   }
 }

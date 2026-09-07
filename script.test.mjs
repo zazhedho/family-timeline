@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { calculateAge, formatNextBirthday, formatNumber, getNextBirthday } from './script.mjs';
+import * as timeline from './script.mjs';
+
+const { calculateAge, formatNextBirthday, formatNumber, getNextBirthday } = timeline;
 
 test('calculates calendar age and full totals in WIB', () => {
   const birth = new Date('1996-03-02T10:00:00+07:00');
@@ -69,4 +71,11 @@ test('keeps desktop cards independent when a sibling expands', async () => {
   const css = await readFile(new URL('./style.css', import.meta.url), 'utf8');
 
   assert.match(css, /\.family-grid\s*\{[^}]*align-items:\s*start;/s);
+});
+
+test('interpolates count-up values from zero to the current total', () => {
+  assert.equal(typeof timeline.interpolateCount, 'function');
+  assert.equal(timeline.interpolateCount(100, 0), 0);
+  assert.equal(timeline.interpolateCount(100, 0.5), 87);
+  assert.equal(timeline.interpolateCount(100, 1), 100);
 });

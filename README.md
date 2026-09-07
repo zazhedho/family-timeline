@@ -9,13 +9,14 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 - Counter umur yang diperbarui setiap detik.
 - Semua perhitungan menggunakan zona waktu `Asia/Jakarta` (WIB).
 - Umur kalender dalam tahun, bulan, hari, jam, menit, dan detik.
-- Total umur terpisah dalam detik, menit, jam, hari, minggu, dan bulan.
+- Total umur terpisah dan diurutkan dari bulan, minggu, hari, jam, menit, hingga detik.
 - Total angka ditampilkan penuh dengan pemisah ribuan Indonesia, tanpa singkatan.
 - Tanggal lahir diberi highlight sebagai fokus utama setiap kartu.
 - Pengingat ulang tahun berikutnya beserta jumlah hari yang tersisa.
 - Kartu keluarga responsif untuk desktop dan mobile.
 - Silsilah santai: Papa dan Mama berdampingan, anak-anak di bawah, dengan garis penghubung melengkung dan simbol hati. Di mobile, kartu tersusun vertikal dengan garis di samping.
-- Detail total umur dapat dibuka dan ditutup secara independen pada setiap kartu.
+- Detail total umur tertutup secara default dan dapat dibuka secara independen pada setiap kartu.
+- Setiap kali rincian dibuka, keenam total dianimasikan dari nol menuju nilai terkini; panel juga membuka dan menutup dengan lembut.
 - Dukungan untuk menambahkan anak kedua, ketiga, dan seterusnya melalui satu array data.
 - Validasi untuk tanggal lahir yang tidak valid atau berada di masa depan.
 
@@ -108,7 +109,7 @@ const PEOPLE = [
 Gunakan aturan berikut:
 
 1. `id` harus unik dan sebaiknya menggunakan huruf kecil tanpa spasi.
-2. `role` adalah label kecil di atas nama.
+2. `role` adalah label hubungan dasar. Papa dan Mama menampilkannya langsung di atas nama.
 3. `name` adalah nama yang ditampilkan pada kartu.
 4. `birthAt` menggunakan format ISO `YYYY-MM-DDTHH:mm:ss+07:00`.
 5. Offset `+07:00` harus dipertahankan agar waktu lahir jelas sebagai WIB.
@@ -124,11 +125,13 @@ Contoh:
 ```js
 {
   id: 'anak-2',
-  role: 'Anak 2',
+  role: 'Anak',
   name: 'Nama Anak Kedua',
   birthAt: 'YYYY-MM-DDTHH:mm:ss+07:00',
 },
 ```
+
+Jika jumlah anak lebih dari satu, label kartu otomatis menjadi `Anak Pertama`, `Anak Kedua`, dan seterusnya.
 
 ## Cara kerja perhitungan
 
