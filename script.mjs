@@ -64,7 +64,6 @@ const TOTAL_UNITS = [
   ['days', 'Total hari'],
   ['weeks', 'Total minggu'],
   ['months', 'Total bulan'],
-  ['years', 'Total tahun'],
 ];
 
 export function formatNumber(value) {
@@ -252,7 +251,20 @@ function cardMarkup(person, index) {
         </time>
       </p>
       <p class="next-birthday" data-next-birthday></p>
-      <p class="calendar-age" data-age aria-live="polite">Menghitung...</p>
+      <div class="calendar-age" data-age role="timer" aria-live="off" aria-label="Menghitung umur">
+        <div aria-hidden="true">
+          <p class="age-years"><span data-age-unit="years">0</span> <span class="age-year-label">tahun</span></p>
+          <p class="age-remainder"><span data-age-unit="months">0</span> bulan <span class="age-dot">·</span> <span data-age-unit="days">0</span> hari</p>
+          <div class="age-clock">
+            <div><span class="age-clock-value" data-age-unit="hours">00</span><span class="age-clock-label">jam</span></div>
+            <span class="age-clock-separator">:</span>
+            <div><span class="age-clock-value" data-age-unit="minutes">00</span><span class="age-clock-label">menit</span></div>
+            <span class="age-clock-separator">:</span>
+            <div><span class="age-clock-value" data-age-unit="seconds">00</span><span class="age-clock-label">detik</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="age-error" data-age-error hidden></p>
       <details class="totals-disclosure" data-totals-disclosure open>
         <summary>Total umur dalam semua unit</summary>
         <dl class="totals" data-totals>${totals}</dl>
@@ -266,7 +278,16 @@ function render(now = new Date()) {
   if (!grid) return;
 
   if (!grid.children.length) {
-    grid.innerHTML = PEOPLE.map(cardMarkup).join('');
+    const parents = PEOPLE.filter((person) => ['papa', 'mama'].includes(person.id));
+    const children = PEOPLE.filter((person) => !['papa', 'mama'].includes(person.id));
+    grid.innerHTML = `
+      <svg class="family-connections" aria-hidden="true"></svg>
+      <div class="parents-row" role="group" aria-label="Orang tua">${parents.map((person) => cardMarkup(person, PEOPLE.indexOf(person))).join('')}</div>
+      <div class="family-heart" aria-hidden="true">♡</div>
+      <div class="children-row" role="group" aria-label="Anak-anak">${children.map((person) => cardMarkup(person, PEOPLE.indexOf(person))).join('')}</div>`;
+    const observer = new ResizeObserver(() => drawConnections(grid));
+    observer.observe(grid);
+    grid.querySelectorAll('.person-card').forEach((card) => observer.observe(card));
   }
 
   document.querySelector('[data-today]').textContent = todayFormatter.format(now);
@@ -282,19 +303,57 @@ function render(now = new Date()) {
 
     if (result.error) {
       nextBirthdayElement.textContent = result.error;
-      ageElement.textContent = result.error;
+      ageElement.hidden = true;
+      card.querySelector('[data-age-error]').hidden = false;
+      card.querySelector('[data-age-error]').textContent = result.error;
       totalsDisclosure.hidden = true;
       continue;
     }
 
     nextBirthdayElement.textContent = formatNextBirthday(new Date(person.birthAt), now);
-    ageElement.textContent = formatCalendarAge(result.calendar);
+    ageElement.hidden = false;
+    card.querySelector('[data-age-error]').hidden = true;
+    ageElement.setAttribute('aria-label', formatCalendarAge(result.calendar));
+    for (const [unit, value] of Object.entries(result.calendar)) {
+      card.querySelector(`[data-age-unit="${unit}"]`).textContent =
+        ['hours', 'minutes', 'seconds'].includes(unit) ? String(value).padStart(2, '0') : formatNumber(value);
+    }
     totalsDisclosure.hidden = false;
     totalsElement.hidden = false;
     for (const [unit] of TOTAL_UNITS) {
       card.querySelector(`[data-total="${unit}"]`).textContent = formatNumber(result.totals[unit]);
     }
   }
+}
+
+function drawConnections(grid) {
+  const origin = grid.getBoundingClientRect();
+  const bounds = (element) => {
+    const rect = element.getBoundingClientRect();
+    return { x: rect.left - origin.left, y: rect.top - origin.top, width: rect.width, height: rect.height };
+  };
+  const parents = [...grid.querySelectorAll('.parents-row .person-card')].map(bounds);
+  const children = [...grid.querySelectorAll('.children-row .person-card')].map(bounds);
+  const heart = bounds(grid.querySelector('.family-heart'));
+  const center = heart.x + heart.width / 2;
+  const junction = heart.y + heart.height / 2;
+  const paths = [];
+  if (matchMedia('(max-width: 820px)').matches) {
+    const cards = [...parents, ...children];
+    if (cards.length) paths.push(`M ${center} ${cards[0].y + 44} V ${cards.at(-1).y + 44}`);
+    cards.forEach((card) => paths.push(`M ${center} ${card.y + 24} Q ${center} ${card.y + 44} ${card.x} ${card.y + 44}`));
+  } else {
+    parents.forEach((card, index) => {
+      const edge = index === 0 ? card.x + card.width : card.x;
+      const bend = center + (index === 0 ? -16 : 16);
+      paths.push(`M ${edge} ${card.y + 48} H ${bend} Q ${center} ${card.y + 48} ${center} ${card.y + 64} V ${junction}`);
+    });
+    children.forEach((card) => {
+      const x = card.x + card.width / 2;
+      paths.push(`M ${center} ${junction} C ${center} ${card.y - 24}, ${x} ${card.y - 24}, ${x} ${card.y}`);
+    });
+  }
+  grid.querySelector('.family-connections').innerHTML = paths.map((d) => `<path d="${d}" />`).join('');
 }
 
 if (typeof document !== 'undefined') {

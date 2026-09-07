@@ -9,11 +9,12 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 - Counter umur yang diperbarui setiap detik.
 - Semua perhitungan menggunakan zona waktu `Asia/Jakarta` (WIB).
 - Umur kalender dalam tahun, bulan, hari, jam, menit, dan detik.
-- Total umur terpisah dalam detik, menit, jam, hari, minggu, bulan, dan tahun.
+- Total umur terpisah dalam detik, menit, jam, hari, minggu, dan bulan.
 - Total angka ditampilkan penuh dengan pemisah ribuan Indonesia, tanpa singkatan.
 - Tanggal lahir diberi highlight sebagai fokus utama setiap kartu.
 - Pengingat ulang tahun berikutnya beserta jumlah hari yang tersisa.
 - Kartu keluarga responsif untuk desktop dan mobile.
+- Silsilah santai: Papa dan Mama berdampingan, anak-anak di bawah, dengan garis penghubung melengkung dan simbol hati. Di mobile, kartu tersusun vertikal dengan garis di samping.
 - Detail total umur dapat dibuka dan ditutup secara independen pada setiap kartu.
 - Dukungan untuk menambahkan anak kedua, ketiga, dan seterusnya melalui satu array data.
 - Validasi untuk tanggal lahir yang tidak valid atau berada di masa depan.
@@ -116,6 +117,8 @@ Gunakan aturan berikut:
 
 Tambahkan object baru ke array `PEOPLE`. Tidak perlu mengubah HTML atau membuat kartu secara manual karena kartu dibuat otomatis oleh `script.mjs`.
 
+ID `papa` dan `mama` ditempatkan pada kelompok orang tua. Anggota dengan ID lainnya masuk kelompok anak sesuai urutan array. Garis penghubung mengikuti perubahan ukuran layar dan kartu saat detail dibuka atau ditutup.
+
 Contoh:
 
 ```js
@@ -135,7 +138,7 @@ Contoh:
 - Total detik dihitung dari durasi absolut sejak waktu lahir.
 - Total menit, jam, hari, dan minggu dibulatkan ke bawah dari total detik.
 - Total bulan dihitung sebagai `tahun lengkap × 12 + bulan lengkap`.
-- Total tahun adalah jumlah tahun kalender lengkap.
+- Angka tahun utama adalah jumlah tahun kalender lengkap.
 - Ulang tahun berikutnya memakai tanggal dan jam lahir dalam WIB. Jumlah hari tersisa dihitung berdasarkan tanggal kalender WIB.
 - Jika data tanggal lahir invalid atau berada di masa depan, kartu menampilkan pesan error yang terbaca dan tidak menampilkan angka negatif.
 
