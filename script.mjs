@@ -507,4 +507,10 @@ function drawConnections(grid) {
 if (typeof document !== 'undefined') {
   render();
   setInterval(render, 1000);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
 }

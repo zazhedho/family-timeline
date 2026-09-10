@@ -1,0 +1,32 @@
+{
+  "id": "/",
+  "name": "I'M YOURZ Family",
+  "short_name": "YOURZ Family",
+  "description": "Silsilah keluarga dan penghitung umur secara langsung hingga detik dalam waktu WIB.",
+  "lang": "id-ID",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#f4f5ef",
+  "background_color": "#f4f5ef",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ]
+}

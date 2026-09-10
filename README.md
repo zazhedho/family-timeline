@@ -23,6 +23,7 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 - Dukungan untuk menambahkan anak kedua, ketiga, dan seterusnya melalui satu array data.
 - Validasi untuk tanggal lahir yang tidak valid atau berada di masa depan.
 - Metadata SEO, canonical URL, structured data, robots, dan sitemap untuk mesin pencari.
+- PWA yang dapat dipasang ke homescreen dan dibuka kembali saat offline setelah kunjungan online pertama.
 
 ## Data keluarga saat ini
 
@@ -38,6 +39,7 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 - CSS responsive tanpa framework
 - JavaScript module (`.mjs`)
 - `Intl.DateTimeFormat` untuk format WIB dan bahasa Indonesia
+- Web App Manifest dan Service Worker untuk instalasi serta dukungan offline
 - Node.js built-in test runner (`node:test`)
 - Vercel untuk deployment static site
 
@@ -49,10 +51,14 @@ Tidak ada package runtime atau dependency eksternal yang perlu di-install.
 family-timeline/
 ├── index.html                         # Struktur halaman utama
 ├── favicon.svg                        # Ikon silsilah untuk tab browser
+├── manifest.webmanifest               # Identitas dan konfigurasi aplikasi PWA
+├── sw.js                              # Cache app shell dan fallback offline
+├── icons/                             # Ikon homescreen dan maskable PWA
 ├── style.css                          # Tampilan jurnal dan responsive layout
 ├── script.mjs                         # Data, kalkulasi umur, dan renderer DOM
 ├── script.test.mjs                    # Test kalkulasi dengan node:test
 ├── seo.test.mjs                       # Test metadata dan file SEO
+├── pwa.test.mjs                       # Test manifest, ikon, dan service worker
 ├── robots.txt                         # Aturan crawler dan lokasi sitemap
 ├── sitemap.xml                        # Daftar URL publik untuk mesin pencari
 ├── vercel.json                        # Konfigurasi URL canonical Vercel
@@ -66,7 +72,7 @@ family-timeline/
 
 ### Prasyarat
 
-- Browser modern yang mendukung JavaScript modules, `Intl`, dan elemen HTML `<details>`.
+- Browser modern yang mendukung JavaScript modules, `Intl`, elemen HTML `<details>`, dan Service Worker.
 - Python 3 untuk server lokal, jika ingin menjalankan tanpa memasang dependency.
 - Node.js 18 atau lebih baru hanya untuk menjalankan test.
 
@@ -91,6 +97,7 @@ Test menggunakan runner bawaan Node.js, jadi tidak membutuhkan `npm install`:
 ```bash
 node --test script.test.mjs
 node --test seo.test.mjs
+node --test pwa.test.mjs
 ```
 
 Pengecekan sintaks dapat dijalankan dengan:
@@ -98,7 +105,18 @@ Pengecekan sintaks dapat dijalankan dengan:
 ```bash
 node --check script.mjs
 node --check script.test.mjs
+node --check sw.js
+node --check pwa.test.mjs
 ```
+
+## Memasang sebagai aplikasi
+
+PWA bekerja melalui HTTPS pada domain production atau melalui `localhost` saat development. Buka website sekali dalam keadaan online agar seluruh app shell tersimpan.
+
+- Android atau desktop Chromium: gunakan menu browser **Install app** atau **Tambahkan ke layar utama**.
+- iPhone dan iPad: buka melalui Safari, pilih **Share**, lalu **Add to Home Screen**.
+
+Setelah service worker aktif, halaman dan seluruh counter dapat dibuka kembali tanpa internet. Saat online, aplikasi tetap meminta file terbaru dari jaringan dan menggunakan cache hanya ketika jaringan tidak tersedia.
 
 ## Mengubah data keluarga
 
@@ -175,6 +193,8 @@ Setelah deployment terbaru aktif, tambahkan domain ke Google Search Console, kir
 ## Privasi
 
 Nama dan tanggal lahir keluarga tersimpan langsung di `script.mjs` dan dapat dibaca oleh siapa pun yang memiliki akses ke source atau deployment. Jika data ini bersifat pribadi, gunakan repository dan deployment private atau tambahkan lapisan autentikasi sebelum membagikan URL.
+
+Saat PWA digunakan, app shell termasuk `script.mjs` disimpan pada cache browser perangkat agar dapat dibuka offline. Hapus data situs atau uninstall aplikasi untuk menghapus salinan lokal tersebut.
 
 Selain itu, waktu sekarang berasal dari jam perangkat pengunjung. Zona waktunya tetap diformat sebagai WIB, tetapi jam perangkat yang salah dapat memengaruhi hasil counter.
 
