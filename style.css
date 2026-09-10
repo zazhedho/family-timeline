@@ -548,29 +548,6 @@ footer {
   }
 }
 
-@media (max-width: 640px) {
-  .calendar-age > div {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .age-years {
-    grid-column: 1;
-  }
-  .age-remainder {
-    grid-column: 1;
-    margin: 4px 0 0;
-  }
-  .age-clock {
-    grid-column: 1;
-    grid-row: auto;
-    border-left: none;
-    border-top: 1px solid #e9e8df;
-    padding-left: 0;
-    padding-top: 12px;
-    width: 100%;
-  }
-}
-
 @media (max-width: 480px) {
   .page-shell {
     width: min(100% - 24px, 1120px);

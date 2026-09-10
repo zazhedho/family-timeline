@@ -86,6 +86,13 @@ test('keeps family names on one line and uses Daddy and Mommy labels', async () 
   assert.doesNotMatch(script, /person-avatar|person-identity|const initial/);
 });
 
+test('keeps the clock beside the calendar age on mobile', async () => {
+  const css = await readFile(new URL('./style.css', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(css, /\.age-clock\s*\{[^}]*grid-row:\s*auto;/s);
+  assert.doesNotMatch(css, /\.calendar-age > div\s*\{[^}]*grid-template-columns:\s*1fr;/s);
+});
+
 test('interpolates count-up values from zero to the current total', () => {
   assert.equal(typeof timeline.interpolateCount, 'function');
   assert.equal(timeline.interpolateCount(100, 0), 0);
