@@ -73,6 +73,19 @@ test('keeps desktop cards independent when a sibling expands', async () => {
   assert.match(css, /\.family-grid\s*\{[^}]*align-items:\s*start;/s);
 });
 
+test('keeps family names on one line and uses Daddy and Mommy labels', async () => {
+  const [css, script] = await Promise.all([
+    readFile(new URL('./style.css', import.meta.url), 'utf8'),
+    readFile(new URL('./script.mjs', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(css, /\.person-card h2\s*\{[^}]*white-space:\s*nowrap;/s);
+  assert.match(script, /id: 'papa', role: 'Daddy'/);
+  assert.match(script, /id: 'mama', role: 'Mommy'/);
+  assert.match(script, /Awal Mula: Daddy & Mommy/);
+  assert.doesNotMatch(script, /person-avatar|person-identity|const initial/);
+});
+
 test('interpolates count-up values from zero to the current total', () => {
   assert.equal(typeof timeline.interpolateCount, 'function');
   assert.equal(timeline.interpolateCount(100, 0), 0);

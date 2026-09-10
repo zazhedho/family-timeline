@@ -1,6 +1,6 @@
 # I'M YOURZ Family
 
-Website pribadi keluarga untuk menghitung umur Papa, Mama, dan Anak secara live sampai hitungan detik menggunakan zona waktu WIB.
+Website pribadi keluarga untuk menghitung umur Daddy, Mommy, dan Anak secara live sampai hitungan detik menggunakan zona waktu WIB.
 
 Production: [https://family.imyourz.com/](https://family.imyourz.com/)
 
@@ -16,7 +16,8 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 - Tanggal lahir diberi highlight sebagai fokus utama setiap kartu.
 - Pengingat ulang tahun berikutnya beserta jumlah hari yang tersisa.
 - Kartu keluarga responsif untuk desktop dan mobile.
-- Silsilah santai: Papa dan Mama berdampingan, anak-anak di bawah, dengan garis penghubung melengkung dan simbol hati. Di mobile, kartu tersusun vertikal dengan garis di samping.
+- Silsilah The Family Hearth: Daddy dan Mommy disatukan dalam paviliun "Pondasi Kasih" yang harmonis dengan lambang ikatan cinta di tengahnya, lalu dihubungkan oleh sulur pita kasih organik yang mengalir menuju buah hati di bawahnya.
+- Animasi detak kehidupan (pulsing heartbeat) pada setiap kartu umur.
 - Detail total umur tertutup secara default dan dapat dibuka secara independen pada setiap kartu.
 - Setiap kali rincian dibuka, keenam total dianimasikan dari nol menuju nilai terkini; panel juga membuka dan menutup dengan lembut.
 - Dukungan untuk menambahkan anak kedua, ketiga, dan seterusnya melalui satu array data.
@@ -27,8 +28,8 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 
 | Peran | Nama | Jam lahir (WIB) |
 | --- | --- | --- |
-| Papa | Zaidus Zhuhur | 10:00 WIB |
-| Mama | Zaqia Khana Meriza | 00:30 WIB |
+| Daddy | Zaidus Zhuhur | 10:00 WIB |
+| Mommy | Zaqia Khana Meriza | 00:30 WIB |
 | Anak | Zeia Elora Zhane | 09:30 WIB |
 
 ## Teknologi
@@ -107,7 +108,7 @@ Edit konstanta `PEOPLE` di [script.mjs](./script.mjs):
 const PEOPLE = [
   {
     id: 'papa',
-    role: 'Papa',
+    role: 'Daddy',
     name: 'Zaidus Zhuhur',
     birthAt: 'YYYY-MM-DDTHH:mm:ss+07:00',
   },
@@ -117,7 +118,7 @@ const PEOPLE = [
 Gunakan aturan berikut:
 
 1. `id` harus unik dan sebaiknya menggunakan huruf kecil tanpa spasi.
-2. `role` adalah label hubungan dasar. Papa dan Mama menampilkannya langsung di atas nama.
+2. `role` adalah label hubungan dasar. Daddy dan Mommy menampilkannya langsung di atas nama.
 3. `name` adalah nama yang ditampilkan pada kartu.
 4. `birthAt` menggunakan format ISO `YYYY-MM-DDTHH:mm:ss+07:00`.
 5. Offset `+07:00` harus dipertahankan agar waktu lahir jelas sebagai WIB.

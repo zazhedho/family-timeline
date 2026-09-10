@@ -52,8 +52,8 @@ const nowTimeFormatter = new Intl.DateTimeFormat('id-ID', {
 });
 
 const PEOPLE = [
-  { id: 'papa', role: 'Papa', name: 'Zaidus Zhuhur', birthAt: '1996-03-02T10:00:00+07:00' },
-  { id: 'mama', role: 'Mama', name: 'Zaqia Khana Meriza', birthAt: '1997-09-18T00:30:00+07:00' },
+  { id: 'papa', role: 'Daddy', name: 'Zaidus Zhuhur', birthAt: '1996-03-02T10:00:00+07:00' },
+  { id: 'mama', role: 'Mommy', name: 'Zaqia Khana Meriza', birthAt: '1997-09-18T00:30:00+07:00' },
   { id: 'anak', role: 'Anak', name: 'Zeia Elora Zhane', birthAt: '2026-09-02T09:30:00+07:00' },
 ];
 
@@ -260,7 +260,7 @@ function cardMarkup(person, displayRole = person.role) {
       <p class="next-birthday" data-next-birthday></p>
       <div class="calendar-age" data-age role="timer" aria-live="off" aria-label="Menghitung umur">
         <div aria-hidden="true">
-          <p class="age-years"><span data-age-unit="years">0</span> <span class="age-year-label">tahun</span></p>
+          <p class="age-years"><span data-age-unit="years">0</span> <span class="age-year-label">tahun</span> <span class="heartbeat-dot" title="Detak kehidupan" aria-hidden="true"></span></p>
           <p class="age-remainder"><span data-age-unit="months">0</span> bulan <span class="age-dot">·</span> <span data-age-unit="days">0</span> hari</p>
           <div class="age-clock">
             <div><span class="age-clock-value" data-age-unit="hours">00</span><span class="age-clock-label">jam</span></div>
@@ -275,8 +275,8 @@ function cardMarkup(person, displayRole = person.role) {
       <details class="totals-disclosure" data-totals-disclosure>
         <summary>
           <span class="totals-summary-copy">
-            <span class="totals-summary-title">Rincian total umur</span>
-            <span class="totals-summary-hint">6 satuan waktu</span>
+            <span class="totals-summary-title">Jejak Waktu yang Dilalui</span>
+            <span class="totals-summary-hint">Rincian 6 satuan waktu</span>
           </span>
           <span class="totals-summary-icon" aria-hidden="true">
             <svg viewBox="0 0 20 20" focusable="false">
@@ -291,8 +291,8 @@ function cardMarkup(person, displayRole = person.role) {
 }
 
 function childRole(index, total) {
-  if (total === 1) return 'Anak';
-  return `Anak ${CHILD_ORDINALS[index] ?? `ke-${index + 1}`}`;
+  if (total === 1) return 'Buah Hati';
+  return `Buah Hati ${CHILD_ORDINALS[index] ?? `ke-${index + 1}`}`;
 }
 
 const totalCountFrames = new WeakMap();
@@ -399,12 +399,13 @@ function render(now = new Date()) {
   if (!grid.children.length) {
     const parents = PEOPLE.filter((person) => ['papa', 'mama'].includes(person.id));
     const children = PEOPLE.filter((person) => !['papa', 'mama'].includes(person.id));
+
     grid.innerHTML = `
       <svg class="family-connections" aria-hidden="true"></svg>
-      <p class="generation-label">Orang tua</p>
+      <p class="generation-label">Awal Mula: Daddy & Mommy</p>
       <div class="parents-row" role="group" aria-label="Orang tua">${parents.map((person) => cardMarkup(person)).join('')}</div>
-      <div class="family-heart" aria-hidden="true">♡</div>
-      <p class="generation-label">Anak-anak</p>
+      <div class="family-heart" aria-hidden="true" title="Dua hati yang bersatu">♡</div>
+      <p class="generation-label">Buah Hati Tercinta</p>
       <div class="children-row" role="group" aria-label="Anak-anak">${children.map((person, index) => cardMarkup(person, childRole(index, children.length))).join('')}</div>`;
     const observer = new ResizeObserver(() => drawConnections(grid));
     observer.observe(grid);
@@ -455,33 +456,52 @@ function render(now = new Date()) {
 }
 
 function drawConnections(grid) {
+  const svg = grid.querySelector('.family-connections');
+  if (!svg) return;
   const origin = grid.getBoundingClientRect();
   const bounds = (element) => {
+    if (!element) return null;
     const rect = element.getBoundingClientRect();
     return { x: rect.left - origin.left, y: rect.top - origin.top, width: rect.width, height: rect.height };
   };
-  const parents = [...grid.querySelectorAll('.parents-row .person-card')].map(bounds);
-  const children = [...grid.querySelectorAll('.children-row .person-card')].map(bounds);
-  const heart = bounds(grid.querySelector('.family-heart'));
-  const center = heart.x + heart.width / 2;
-  const junction = heart.y + heart.height / 2;
+  const parents = [...grid.querySelectorAll('.parents-row .person-card')].map(bounds).filter(Boolean);
+  const children = [...grid.querySelectorAll('.children-row .person-card')].map(bounds).filter(Boolean);
+  const heartEl = grid.querySelector('.family-heart');
+  const heart = bounds(heartEl);
+
+  if (!heart || !parents.length || !children.length) {
+    svg.innerHTML = '';
+    return;
+  }
+
+  const heartCenterX = heart.x + heart.width / 2;
   const paths = [];
+
   if (matchMedia('(max-width: 820px)').matches) {
     const cards = [...parents, ...children];
-    if (cards.length) paths.push(`M ${center} ${cards[0].y + 44} V ${cards.at(-1).y + 44}`);
-    cards.forEach((card) => paths.push(`M ${center} ${card.y + 24} Q ${center} ${card.y + 44} ${card.x} ${card.y + 44}`));
+    if (cards.length) {
+      paths.push(`M ${heartCenterX} ${cards[0].y + 44} V ${cards.at(-1).y + 44}`);
+      cards.forEach((card) => paths.push(`M ${heartCenterX} ${card.y + 24} Q ${heartCenterX} ${card.y + 44} ${card.x} ${card.y + 44}`));
+    }
   } else {
-    parents.forEach((card, index) => {
-      const edge = index === 0 ? card.x + card.width : card.x;
-      const bend = center + (index === 0 ? -16 : 16);
-      paths.push(`M ${edge} ${card.y + 48} H ${bend} Q ${center} ${card.y + 48} ${center} ${card.y + 64} V ${junction}`);
+    // Desktop: Parents bottom curves smoothly down into Heart, then Heart curves down to Children
+    parents.forEach((card) => {
+      const cardBottomX = card.x + card.width / 2;
+      const cardBottomY = card.y + card.height;
+      const midY = (cardBottomY + heart.y) / 2;
+      paths.push(`M ${cardBottomX} ${cardBottomY} C ${cardBottomX} ${midY}, ${heartCenterX} ${midY}, ${heartCenterX} ${heart.y}`);
     });
+
+    const streamStartY = heart.y + heart.height;
     children.forEach((card) => {
-      const x = card.x + card.width / 2;
-      paths.push(`M ${center} ${junction} C ${center} ${card.y - 24}, ${x} ${card.y - 24}, ${x} ${card.y}`);
+      const targetX = card.x + card.width / 2;
+      const targetY = card.y;
+      const midY = (streamStartY + targetY) / 2;
+      paths.push(`M ${heartCenterX} ${streamStartY} C ${heartCenterX} ${midY}, ${targetX} ${midY}, ${targetX} ${targetY}`);
     });
   }
-  grid.querySelector('.family-connections').innerHTML = paths.map((d) => `<path d="${d}" />`).join('');
+
+  svg.innerHTML = paths.map((d) => `<path d="${d}" />`).join('');
 }
 
 if (typeof document !== 'undefined') {
