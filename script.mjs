@@ -43,6 +43,13 @@ const todayFormatter = new Intl.DateTimeFormat('id-ID', {
   month: 'long',
   year: 'numeric',
 });
+const weddingDateFormatter = new Intl.DateTimeFormat('id-ID', {
+  timeZone: TIME_ZONE,
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
 const nowTimeFormatter = new Intl.DateTimeFormat('id-ID', {
   timeZone: TIME_ZONE,
   hour: '2-digit',
@@ -51,11 +58,13 @@ const nowTimeFormatter = new Intl.DateTimeFormat('id-ID', {
   hourCycle: 'h23',
 });
 
-const PEOPLE = [
+export const PEOPLE = [
   { id: 'papa', role: 'Daddy', name: 'Zaidus Zhuhur', birthAt: '1996-03-02T10:00:00+07:00' },
   { id: 'mama', role: 'Mommy', name: 'Zaqia Khana Meriza', birthAt: '1997-09-18T00:30:00+07:00' },
   { id: 'anak', role: 'Anak', name: 'Zeia Elora Zhane', birthAt: '2026-09-02T09:30:00+07:00' },
 ];
+
+export const WEDDING = { at: '2025-04-27T15:00:00+07:00' };
 
 const TOTAL_UNITS = [
   ['months', 'Total bulan'],
@@ -229,6 +238,35 @@ export function formatNextBirthday(birthDate, nowDate = new Date()) {
   if (nextBirthday.daysUntil === 0) return 'Ulang tahun hari ini';
 
   return `${nextBirthdayDateFormatter.format(nextBirthday.date)} · ${formatNumber(nextBirthday.daysUntil)} hari lagi`;
+}
+
+export function formatWeddingDate(date) {
+  return weddingDateFormatter.format(date);
+}
+
+export function formatWeddingTime(date) {
+  return `pukul ${birthTimeFormatter.format(date)} WIB`;
+}
+
+export function getNextAnniversary(weddingDate, nowDate = new Date()) {
+  const next = getNextBirthday(weddingDate, nowDate);
+  if (next.error) return next;
+
+  const ordinal = getWibParts(next.date).year - getWibParts(weddingDate).year;
+  return { ...next, ordinal };
+}
+
+export function formatNextAnniversary(weddingDate, nowDate = new Date()) {
+  const next = getNextAnniversary(weddingDate, nowDate);
+  if (next.error) return next.error;
+  if (next.daysUntil === 0) return `Anniversary ke-${next.ordinal} hari ini`;
+
+  return `Anniversary ke-${next.ordinal} · ${nextBirthdayDateFormatter.format(next.date)} · ${formatNumber(next.daysUntil)} hari lagi`;
+}
+
+export function coupleTitle(people) {
+  const firstName = (id) => people.find((person) => person.id === id)?.name.split(' ')[0];
+  return `${firstName('papa')} & ${firstName('mama')}`;
 }
 
 export function formatCalendarAge(calendar) {

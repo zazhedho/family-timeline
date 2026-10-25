@@ -78,6 +78,34 @@ test('treats the whole WIB birthday as today, before and after the birth hour', 
   assert.equal(getNextBirthday(birth, new Date('2027-03-02T17:00:00Z')).daysUntil, 365);
 });
 
+const WEDDING_AT = new Date('2025-04-27T15:00:00+07:00');
+
+test('formats the wedding date with its Indonesian weekday', () => {
+  assert.equal(timeline.formatWeddingDate(WEDDING_AT), 'Minggu, 27 April 2025');
+  assert.equal(timeline.formatWeddingTime(WEDDING_AT), 'pukul 15.00 WIB');
+  assert.equal(timeline.WEDDING.at, '2025-04-27T15:00:00+07:00');
+});
+
+test('counts time together since the wedding', () => {
+  assert.deepEqual(
+    calculateAge(WEDDING_AT, new Date('2026-10-25T18:12:45+07:00')).calendar,
+    { years: 1, months: 5, days: 28, hours: 3, minutes: 12, seconds: 45 }
+  );
+});
+
+test('rolls the anniversary ordinal forward every year', () => {
+  const f = (iso) => timeline.formatNextAnniversary(WEDDING_AT, new Date(iso));
+  assert.equal(f('2026-10-25T12:00:00+07:00'), 'Anniversary ke-2 · 27 Apr 2027 · 184 hari lagi');
+  assert.equal(f('2027-04-27T09:00:00+07:00'), 'Anniversary ke-2 hari ini');
+  assert.equal(f('2027-04-27T20:00:00+07:00'), 'Anniversary ke-2 hari ini');
+  assert.equal(f('2027-04-28T00:00:00+07:00'), 'Anniversary ke-3 · 27 Apr 2028 · 365 hari lagi');
+  assert.equal(timeline.getNextAnniversary(WEDDING_AT, new Date('2031-01-01T00:00:00+07:00')).ordinal, 6);
+});
+
+test('builds the couple title from the parents first names', () => {
+  assert.equal(timeline.coupleTitle(timeline.PEOPLE), 'Zaidus & Zaqia');
+});
+
 test('keeps desktop cards independent when a sibling expands', async () => {
   const css = await readFile(new URL('./style.css', import.meta.url), 'utf8');
 
