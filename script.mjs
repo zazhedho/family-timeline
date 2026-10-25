@@ -50,6 +50,11 @@ const weddingDateFormatter = new Intl.DateTimeFormat('id-ID', {
   month: 'long',
   year: 'numeric',
 });
+const dayMonthFormatter = new Intl.DateTimeFormat('id-ID', {
+  timeZone: TIME_ZONE,
+  day: 'numeric',
+  month: 'long',
+});
 const nowTimeFormatter = new Intl.DateTimeFormat('id-ID', {
   timeZone: TIME_ZONE,
   hour: '2-digit',
@@ -267,6 +272,84 @@ export function formatNextAnniversary(weddingDate, nowDate = new Date()) {
 export function coupleTitle(people) {
   const firstName = (id) => people.find((person) => person.id === id)?.name.split(' ')[0];
   return `${firstName('papa')} & ${firstName('mama')}`;
+}
+
+const CELEBRATION_DAYS = 3;
+
+function isAnniversaryOf(eventParts, date) {
+  return date.year > eventParts.year
+    && date.month === eventParts.month
+    && date.day === Math.min(eventParts.day, daysInMonth(date.year, eventParts.month));
+}
+
+export function getCelebrations(people, wedding, nowDate = new Date()) {
+  const events = [
+    ...people.map((person) => ({ kind: 'birthday', id: person.id, at: person.birthAt })),
+    ...(wedding ? [{ kind: 'anniversary', id: 'wedding', at: wedding.at }] : []),
+  ];
+  const now = getWibParts(nowDate);
+  const today = calendarMilliseconds({ ...now, hour: 0, minute: 0, second: 0 });
+  const celebrations = [];
+
+  for (let offset = 0; offset < CELEBRATION_DAYS; offset += 1) {
+    const shifted = new Date(today - offset * DAY);
+    const date = {
+      year: shifted.getUTCFullYear(),
+      month: shifted.getUTCMonth() + 1,
+      day: shifted.getUTCDate(),
+    };
+
+    for (const event of events) {
+      const eventParts = getWibParts(new Date(event.at));
+      if (isAnniversaryOf(eventParts, date)) {
+        celebrations.push({
+          kind: event.kind,
+          id: event.id,
+          ordinal: date.year - eventParts.year,
+          day: offset + 1,
+        });
+      }
+    }
+  }
+
+  return celebrations;
+}
+
+export function celebrationKey(celebrations) {
+  return celebrations
+    .map(({ kind, id, ordinal, day }) => `${kind}:${id}:${ordinal}:${day}`)
+    .join('|');
+}
+
+export function celebrationCopy(celebration, people) {
+  const { kind, id, ordinal, day } = celebration;
+  const isToday = day === 1;
+  const badge = isToday ? 'HARI INI!' : `HARI KE-${day}`;
+  const dayDetail = `hari ke-${day} dari ${CELEBRATION_DAYS}`;
+
+  if (kind === 'anniversary') {
+    const lead = `${isToday ? 'Happy' : 'Masih merayakan'} Anniversary ke-${ordinal}, `;
+    const tap = 'ketuk untuk lihat kartu';
+    return {
+      titleParts: [lead, 'Daddy & Mommy', isToday ? '!' : ''],
+      detail: isToday
+        ? `${dayMonthFormatter.format(new Date(WEDDING.at))} · hari ini · ${tap}`
+        : `${dayDetail} · ${tap}`,
+      badge,
+    };
+  }
+
+  const person = people.find((member) => member.id === id);
+  const age = ordinal === 1 ? 'pertama' : `ke-${ordinal}`;
+  return {
+    titleParts: [
+      `${isToday ? 'Selamat' : 'Masih merayakan'} ulang tahun ${age}, `,
+      person.name.split(' ')[0],
+      isToday ? '!' : '',
+    ],
+    detail: isToday ? `${dayMonthFormatter.format(new Date(person.birthAt))} · hari ini` : dayDetail,
+    badge,
+  };
 }
 
 export function formatCalendarAge(calendar) {

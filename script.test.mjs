@@ -106,6 +106,71 @@ test('builds the couple title from the parents first names', () => {
   assert.equal(timeline.coupleTitle(timeline.PEOPLE), 'Zaidus & Zaqia');
 });
 
+const ZEIA = [{ id: 'anak', role: 'Anak', name: 'Zeia Elora Zhane', birthAt: '2026-09-02T09:30:00+07:00' }];
+const NO_WEDDING = null;
+
+test('celebrates a birthday for three WIB days only', () => {
+  const at = (iso) => timeline.getCelebrations(ZEIA, NO_WEDDING, new Date(iso));
+  assert.deepEqual(at('2027-09-02T00:00:00+07:00'), [{ kind: 'birthday', id: 'anak', ordinal: 1, day: 1 }]);
+  assert.deepEqual(at('2027-09-04T23:59:59+07:00'), [{ kind: 'birthday', id: 'anak', ordinal: 1, day: 3 }]);
+  assert.deepEqual(at('2027-09-05T00:00:00+07:00'), []);
+  assert.deepEqual(at('2027-09-04T17:00:00Z'), []); // 5 Sep 00.00 WIB
+  assert.deepEqual(at('2027-09-01T16:59:59Z'), []); // 1 Sep 23.59 WIB
+  assert.deepEqual(at('2026-09-02T12:00:00+07:00'), []); // day of birth itself
+});
+
+test('celebrates the wedding anniversary with its ordinal', () => {
+  const wedding = { at: '2025-04-27T15:00:00+07:00' };
+  assert.deepEqual(
+    timeline.getCelebrations([], wedding, new Date('2027-04-27T08:00:00+07:00')),
+    [{ kind: 'anniversary', id: 'wedding', ordinal: 2, day: 1 }]
+  );
+});
+
+test('celebrates a 29 February birthday on 28 February in non-leap years', () => {
+  const leap = [{ id: 'x', role: 'Anak', name: 'Leap Kid', birthAt: '2000-02-29T08:00:00+07:00' }];
+  const at = (iso) => timeline.getCelebrations(leap, NO_WEDDING, new Date(iso));
+  assert.deepEqual(at('2027-02-28T10:00:00+07:00'), [{ kind: 'birthday', id: 'x', ordinal: 27, day: 1 }]);
+  assert.deepEqual(at('2027-03-01T10:00:00+07:00'), [{ kind: 'birthday', id: 'x', ordinal: 27, day: 2 }]);
+  assert.deepEqual(at('2028-02-28T10:00:00+07:00'), []);
+  assert.deepEqual(at('2028-02-29T10:00:00+07:00'), [{ kind: 'birthday', id: 'x', ordinal: 28, day: 1 }]);
+});
+
+test('orders overlapping celebrations by most recent day first', () => {
+  const people = [
+    { id: 'a', role: 'Anak', name: 'Satu', birthAt: '2020-05-01T08:00:00+07:00' },
+    { id: 'b', role: 'Anak', name: 'Dua', birthAt: '2021-05-02T08:00:00+07:00' },
+  ];
+  const celebrations = timeline.getCelebrations(people, NO_WEDDING, new Date('2027-05-02T12:00:00+07:00'));
+  assert.deepEqual(celebrations.map(({ id, day }) => [id, day]), [['b', 1], ['a', 2]]);
+  assert.equal(timeline.celebrationKey(celebrations), 'birthday:b:6:1|birthday:a:7:2');
+  assert.equal(timeline.celebrationKey([]), '');
+});
+
+test('writes celebration copy for every day of the window', () => {
+  const copy = (c) => timeline.celebrationCopy(c, timeline.PEOPLE);
+  assert.deepEqual(copy({ kind: 'birthday', id: 'anak', ordinal: 1, day: 1 }), {
+    titleParts: ['Selamat ulang tahun pertama, ', 'Zeia', '!'],
+    detail: '2 September · hari ini',
+    badge: 'HARI INI!',
+  });
+  assert.deepEqual(copy({ kind: 'birthday', id: 'papa', ordinal: 31, day: 2 }), {
+    titleParts: ['Masih merayakan ulang tahun ke-31, ', 'Zaidus', ''],
+    detail: 'hari ke-2 dari 3',
+    badge: 'HARI KE-2',
+  });
+  assert.deepEqual(copy({ kind: 'anniversary', id: 'wedding', ordinal: 2, day: 1 }), {
+    titleParts: ['Happy Anniversary ke-2, ', 'Daddy & Mommy', '!'],
+    detail: '27 April · hari ini · ketuk untuk lihat kartu',
+    badge: 'HARI INI!',
+  });
+  assert.deepEqual(copy({ kind: 'anniversary', id: 'wedding', ordinal: 2, day: 3 }), {
+    titleParts: ['Masih merayakan Anniversary ke-2, ', 'Daddy & Mommy', ''],
+    detail: 'hari ke-3 dari 3 · ketuk untuk lihat kartu',
+    badge: 'HARI KE-3',
+  });
+});
+
 test('keeps desktop cards independent when a sibling expands', async () => {
   const css = await readFile(new URL('./style.css', import.meta.url), 'utf8');
 
