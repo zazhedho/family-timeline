@@ -218,8 +218,9 @@ export function getNextBirthday(birthDate, nowDate = new Date()) {
   };
   let birthdayDate = { ...birthday, hour: 0, minute: 0, second: 0 };
 
-  // The whole WIB calendar day of the birthday counts as "today".
-  if (calendarMilliseconds(birthdayDate) < calendarMilliseconds(currentDate)) {
+  // The whole WIB calendar day of the birthday counts as "today",
+  // except the day of birth itself.
+  if (year === birth.year || calendarMilliseconds(birthdayDate) < calendarMilliseconds(currentDate)) {
     year += 1;
     birthday = {
       ...birth,

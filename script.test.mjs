@@ -78,6 +78,12 @@ test('treats the whole WIB birthday as today, before and after the birth hour', 
   assert.equal(getNextBirthday(birth, new Date('2027-03-02T17:00:00Z')).daysUntil, 365);
 });
 
+test('does not call the day of birth itself a birthday', () => {
+  const birth = new Date('2026-09-02T09:30:00+07:00');
+
+  assert.equal(formatNextBirthday(birth, new Date('2026-09-02T12:00:00+07:00')), '2 Sep 2027 · 365 hari lagi');
+});
+
 const WEDDING_AT = new Date('2025-04-27T15:00:00+07:00');
 
 test('formats the wedding date with its Indonesian weekday', () => {
