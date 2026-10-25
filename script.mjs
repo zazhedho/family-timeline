@@ -363,11 +363,47 @@ export function formatCalendarAge(calendar) {
   ].join(' · ');
 }
 
-function cardMarkup(person, displayRole = person.role) {
+function ageMarkup(yearLabel, label) {
+  return `
+      <div class="calendar-age" data-age role="timer" aria-live="off" aria-label="${label}">
+        <div aria-hidden="true">
+          <p class="age-years"><span data-age-unit="years">0</span> <span class="age-year-label">${yearLabel}</span> <span class="heartbeat-dot" title="Detak kehidupan" aria-hidden="true"></span></p>
+          <p class="age-remainder"><span data-age-unit="months">0</span> bulan <span class="age-dot">·</span> <span data-age-unit="days">0</span> hari</p>
+          <div class="age-clock">
+            <div><span class="age-clock-value" data-age-unit="hours">00</span><span class="age-clock-label">jam</span></div>
+            <span class="age-clock-separator">:</span>
+            <div><span class="age-clock-value" data-age-unit="minutes">00</span><span class="age-clock-label">menit</span></div>
+            <span class="age-clock-separator">:</span>
+            <div><span class="age-clock-value" data-age-unit="seconds">00</span><span class="age-clock-label">detik</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="age-error" data-age-error hidden></p>`;
+}
+
+function totalsMarkup(title) {
   const totals = TOTAL_UNITS
     .map(([unit, label]) => `<div><dt>${label}</dt><dd data-total="${unit}">0</dd></div>`)
     .join('');
 
+  return `
+      <details class="totals-disclosure" data-totals-disclosure>
+        <summary>
+          <span class="totals-summary-copy">
+            <span class="totals-summary-title">${title}</span>
+            <span class="totals-summary-hint">Rincian 6 satuan waktu</span>
+          </span>
+          <span class="totals-summary-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" focusable="false">
+              <path d="m5 7.5 5 5 5-5" />
+            </svg>
+          </span>
+        </summary>
+        <dl class="totals" data-totals>${totals}</dl>
+      </details>`;
+}
+
+function cardMarkup(person, displayRole = person.role) {
   return `
     <article class="person-card" data-person="${person.id}">
       <p class="person-role">${displayRole}</p>
@@ -380,36 +416,44 @@ function cardMarkup(person, displayRole = person.role) {
         </time>
       </p>
       <p class="next-birthday" data-next-birthday></p>
-      <div class="calendar-age" data-age role="timer" aria-live="off" aria-label="Menghitung umur">
-        <div aria-hidden="true">
-          <p class="age-years"><span data-age-unit="years">0</span> <span class="age-year-label">tahun</span> <span class="heartbeat-dot" title="Detak kehidupan" aria-hidden="true"></span></p>
-          <p class="age-remainder"><span data-age-unit="months">0</span> bulan <span class="age-dot">·</span> <span data-age-unit="days">0</span> hari</p>
-          <div class="age-clock">
-            <div><span class="age-clock-value" data-age-unit="hours">00</span><span class="age-clock-label">jam</span></div>
-            <span class="age-clock-separator">:</span>
-            <div><span class="age-clock-value" data-age-unit="minutes">00</span><span class="age-clock-label">menit</span></div>
-            <span class="age-clock-separator">:</span>
-            <div><span class="age-clock-value" data-age-unit="seconds">00</span><span class="age-clock-label">detik</span></div>
-          </div>
-        </div>
-      </div>
-      <p class="age-error" data-age-error hidden></p>
-      <details class="totals-disclosure" data-totals-disclosure>
-        <summary>
-          <span class="totals-summary-copy">
-            <span class="totals-summary-title">Jejak Waktu yang Dilalui</span>
-            <span class="totals-summary-hint">Rincian 6 satuan waktu</span>
-          </span>
-          <span class="totals-summary-icon" aria-hidden="true">
-            <svg viewBox="0 0 20 20" focusable="false">
-              <path d="m5 7.5 5 5 5-5" />
-            </svg>
-          </span>
-        </summary>
-        <dl class="totals" data-totals>${totals}</dl>
-      </details>
+      ${ageMarkup('tahun', 'Menghitung umur')}
+      ${totalsMarkup('Jejak Waktu yang Dilalui')}
     </article>
   `;
+}
+
+function heartMarkup() {
+  const weddingAt = new Date(WEDDING.at);
+
+  return `
+      <div class="family-heart-wrap">
+        <button type="button" class="family-heart" data-wedding-open aria-haspopup="dialog" aria-label="Lihat kartu pernikahan Daddy dan Mommy">♡</button>
+        <span class="family-heart-caption" data-wedding-open aria-hidden="true">Menikah ${nextBirthdayDateFormatter.format(weddingAt)} · lihat</span>
+      </div>`;
+}
+
+function weddingDialogMarkup() {
+  const weddingAt = new Date(WEDDING.at);
+
+  return `
+    <dialog class="wedding-dialog" data-wedding-dialog aria-labelledby="wedding-title">
+      <article class="wedding-card" data-wedding-card>
+        <span class="wedding-grab" aria-hidden="true"></span>
+        <button type="button" class="wedding-close" data-wedding-close aria-label="Tutup">✕</button>
+        <p class="person-role">Ikatan Kasih</p>
+        <h2 id="wedding-title">${coupleTitle(PEOPLE)}</h2>
+        <p class="birth-date wedding-date">
+          <span class="birth-label">Hari pernikahan</span>
+          <time datetime="${WEDDING.at}">
+            <strong>${formatWeddingDate(weddingAt)}</strong>
+            <span class="birth-time">${formatWeddingTime(weddingAt)}</span>
+          </time>
+        </p>
+        <p class="next-birthday" data-next-anniversary></p>
+        ${ageMarkup('tahun bersama', 'Menghitung waktu bersama')}
+        ${totalsMarkup('Jejak Waktu Bersama')}
+      </article>
+    </dialog>`;
 }
 
 function childRole(index, total) {
@@ -514,6 +558,53 @@ function setupTotalsDisclosure(disclosure) {
   });
 }
 
+function openWeddingDialog() {
+  const dialog = document.querySelector('[data-wedding-dialog]');
+  if (dialog && !dialog.open) dialog.showModal();
+}
+
+function setupWeddingDialog(dialog) {
+  setupTotalsDisclosure(dialog.querySelector('[data-totals-disclosure]'));
+  dialog.querySelector('[data-wedding-close]').addEventListener('click', () => dialog.close());
+  // The card fills the dialog, so a click on the dialog itself is a backdrop click.
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('[data-wedding-open]')) openWeddingDialog();
+  });
+}
+
+function updateAgeBlock(scope, result) {
+  const ageElement = scope.querySelector('[data-age]');
+  const errorElement = scope.querySelector('[data-age-error]');
+  const totalsDisclosure = scope.querySelector('[data-totals-disclosure]');
+
+  ageElement.hidden = Boolean(result.error);
+  errorElement.hidden = !result.error;
+  totalsDisclosure.hidden = Boolean(result.error);
+
+  if (result.error) {
+    errorElement.textContent = result.error;
+    return;
+  }
+
+  ageElement.setAttribute('aria-label', formatCalendarAge(result.calendar));
+  for (const [unit, value] of Object.entries(result.calendar)) {
+    scope.querySelector(`[data-age-unit="${unit}"]`).textContent =
+      ['hours', 'minutes', 'seconds'].includes(unit) ? String(value).padStart(2, '0') : formatNumber(value);
+  }
+  for (const [unit] of TOTAL_UNITS) {
+    const total = scope.querySelector(`[data-total="${unit}"]`);
+    total.dataset.countValue = result.totals[unit];
+    if (!totalsDisclosure.open) {
+      total.textContent = '0';
+    } else if (!totalsDisclosure.dataset.counting) {
+      total.textContent = formatNumber(result.totals[unit]);
+    }
+  }
+}
+
 function render(now = new Date()) {
   const grid = document.querySelector('[data-family-grid]');
   if (!grid) return;
@@ -526,13 +617,15 @@ function render(now = new Date()) {
       <svg class="family-connections" aria-hidden="true"></svg>
       <p class="generation-label">Awal Mula: Daddy & Mommy</p>
       <div class="parents-row" role="group" aria-label="Orang tua">${parents.map((person) => cardMarkup(person)).join('')}</div>
-      <div class="family-heart" aria-hidden="true" title="Dua hati yang bersatu">♡</div>
+      ${heartMarkup()}
       <p class="generation-label">Buah Hati Tercinta</p>
       <div class="children-row" role="group" aria-label="Anak-anak">${children.map((person, index) => cardMarkup(person, childRole(index, children.length))).join('')}</div>`;
     const observer = new ResizeObserver(() => drawConnections(grid));
     observer.observe(grid);
     grid.querySelectorAll('.person-card').forEach((card) => observer.observe(card));
     grid.querySelectorAll('[data-totals-disclosure]').forEach(setupTotalsDisclosure);
+    grid.insertAdjacentHTML('afterend', weddingDialogMarkup());
+    setupWeddingDialog(document.querySelector('[data-wedding-dialog]'));
   }
 
   document.querySelector('[data-today]').textContent = todayFormatter.format(now);
@@ -541,40 +634,15 @@ function render(now = new Date()) {
   for (const person of PEOPLE) {
     const card = grid.querySelector(`[data-person="${person.id}"]`);
     const result = calculateAge(new Date(person.birthAt), now);
-    const nextBirthdayElement = card.querySelector('[data-next-birthday]');
-    const ageElement = card.querySelector('[data-age]');
-    const totalsDisclosure = card.querySelector('[data-totals-disclosure]');
-    const totalsElement = card.querySelector('[data-totals]');
-
-    if (result.error) {
-      nextBirthdayElement.textContent = result.error;
-      ageElement.hidden = true;
-      card.querySelector('[data-age-error]').hidden = false;
-      card.querySelector('[data-age-error]').textContent = result.error;
-      totalsDisclosure.hidden = true;
-      continue;
-    }
-
-    nextBirthdayElement.textContent = formatNextBirthday(new Date(person.birthAt), now);
-    ageElement.hidden = false;
-    card.querySelector('[data-age-error]').hidden = true;
-    ageElement.setAttribute('aria-label', formatCalendarAge(result.calendar));
-    for (const [unit, value] of Object.entries(result.calendar)) {
-      card.querySelector(`[data-age-unit="${unit}"]`).textContent =
-        ['hours', 'minutes', 'seconds'].includes(unit) ? String(value).padStart(2, '0') : formatNumber(value);
-    }
-    totalsDisclosure.hidden = false;
-    totalsElement.hidden = false;
-    for (const [unit] of TOTAL_UNITS) {
-      const total = card.querySelector(`[data-total="${unit}"]`);
-      total.dataset.countValue = result.totals[unit];
-      if (!totalsDisclosure.open) {
-        total.textContent = '0';
-      } else if (!totalsDisclosure.dataset.counting) {
-        total.textContent = formatNumber(result.totals[unit]);
-      }
-    }
+    card.querySelector('[data-next-birthday]').textContent =
+      result.error ?? formatNextBirthday(new Date(person.birthAt), now);
+    updateAgeBlock(card, result);
   }
+
+  const weddingCard = document.querySelector('[data-wedding-card]');
+  const weddingAt = new Date(WEDDING.at);
+  weddingCard.querySelector('[data-next-anniversary]').textContent = formatNextAnniversary(weddingAt, now);
+  updateAgeBlock(weddingCard, calculateAge(weddingAt, now));
 }
 
 function drawConnections(grid) {

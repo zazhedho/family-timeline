@@ -20,6 +20,8 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 - Animasi detak kehidupan (pulsing heartbeat) pada setiap kartu umur.
 - Detail total umur tertutup secara default dan dapat dibuka secara independen pada setiap kartu.
 - Setiap kali rincian dibuka, keenam total dianimasikan dari nol menuju nilai terkini; panel juga membuka dan menutup dengan lembut.
+- Kartu pernikahan Daddy & Mommy dalam pop-up yang dibuka dari lambang hati di tengah silsilah, lengkap dengan hitungan live sejak akad dan rincian "Jejak Waktu Bersama". Di layar ponsel kartu muncul sebagai panel dari bawah.
+- Hitung mundur anniversary otomatis setiap tahun (ke-2, ke-3, dan seterusnya), dengan "Anniversary ke-N hari ini" sepanjang hari H.
 - Dukungan untuk menambahkan anak kedua, ketiga, dan seterusnya melalui satu array data.
 - Validasi untuk tanggal lahir yang tidak valid atau berada di masa depan.
 - Metadata SEO, canonical URL, structured data, robots, dan sitemap untuk mesin pencari.
@@ -140,6 +142,16 @@ Gunakan aturan berikut:
 3. `name` adalah nama yang ditampilkan pada kartu.
 4. `birthAt` menggunakan format ISO `YYYY-MM-DDTHH:mm:ss+07:00`.
 5. Offset `+07:00` harus dipertahankan agar waktu lahir jelas sebagai WIB.
+
+### Mengubah tanggal pernikahan
+
+Edit konstanta `WEDDING` di [script.mjs](./script.mjs):
+
+```js
+export const WEDDING = { at: 'YYYY-MM-DDTHH:mm:ss+07:00' };
+```
+
+Pertahankan offset `+07:00` agar waktu akad jelas sebagai WIB. Nama hari (misalnya "Minggu") dan judul kartu ("Zaidus & Zaqia", dari kata pertama nama Daddy dan Mommy) dibuat otomatis.
 
 ### Menambahkan anak berikutnya
 

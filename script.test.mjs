@@ -190,6 +190,19 @@ test('keeps family names on one line and uses Daddy and Mommy labels', async () 
   assert.doesNotMatch(script, /person-avatar|person-identity|const initial/);
 });
 
+test('opens the wedding card as a native dialog from the heart', async () => {
+  const [css, script] = await Promise.all([
+    readFile(new URL('./style.css', import.meta.url), 'utf8'),
+    readFile(new URL('./script.mjs', import.meta.url), 'utf8'),
+  ]);
+  assert.match(script, /<button[^>]*class="family-heart"[^>]*data-wedding-open/);
+  assert.match(script, /<dialog class="wedding-dialog"/);
+  assert.match(script, /showModal\(\)/);
+  assert.match(css, /\.wedding-card h2\s*\{[^}]*white-space:\s*nowrap;/s);
+  assert.match(css, /\.family-heart-caption\s*\{[^}]*white-space:\s*nowrap;/s);
+  assert.match(css, /@media \(max-width: 480px\)[\s\S]*\.wedding-dialog\s*\{[^}]*margin:\s*auto 0 0;/);
+});
+
 test('keeps the clock beside the calendar age on mobile', async () => {
   const css = await readFile(new URL('./style.css', import.meta.url), 'utf8');
 

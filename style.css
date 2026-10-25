@@ -161,15 +161,20 @@ h1 span {
   text-transform: uppercase;
 }
 
-.family-heart {
+.family-heart-wrap {
   position: relative;
   z-index: 1;
+  justify-self: center;
+  margin: 28px 0 46px;
+}
+
+.family-heart {
   display: grid;
   place-items: center;
-  justify-self: center;
   width: 42px;
   height: 42px;
-  margin: 28px 0 18px;
+  padding: 0;
+  cursor: pointer;
   border: 1.5px solid #e2cec0;
   border-radius: 50%;
   background: #faf4ea;
@@ -177,6 +182,33 @@ h1 span {
   font: 24px Georgia, serif;
   box-shadow: 0 4px 14px rgba(173, 114, 91, 0.12);
   animation: heart-glow 3s infinite ease-in-out;
+}
+
+.family-heart:hover {
+  background: #f8eee7;
+}
+
+.family-heart:focus-visible {
+  outline: 2px solid #9b5a42;
+  outline-offset: 4px;
+}
+
+.family-heart-caption {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 10px;
+  color: #b06b4c;
+  background: #fffaf6;
+  border: 1px solid #ead6ca;
+  border-radius: 999px;
+  font-size: .62rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 @keyframes heart-glow {
@@ -499,7 +531,100 @@ h1 span {
   overflow-wrap: anywhere;
 }
 
+/* ✦ Wedding Dialog ✦ */
+html:has(.wedding-dialog[open]) {
+  overflow: hidden;
+}
+
+.wedding-dialog {
+  width: min(420px, 100% - 32px);
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow-y: auto;
+  color: #263b31;
+  background: #fffaf6;
+  border: 1px solid #ead6ca;
+  border-top: 3px solid #c98f7a;
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(38, 59, 49, .24);
+}
+
+.wedding-dialog[open] {
+  animation: wedding-in .32s cubic-bezier(.22, 1, .36, 1);
+}
+
+.wedding-dialog::backdrop {
+  background: rgba(38, 59, 49, .38);
+}
+
+@keyframes wedding-in {
+  from { opacity: 0; transform: translateY(10px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes wedding-sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+.wedding-card {
+  position: relative;
+  container-type: inline-size;
+  padding: 24px;
+}
+
+.wedding-card h2 {
+  margin: 8px 0 0;
+  font-size: min(1.85rem, 8cqw);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.wedding-grab {
+  display: none;
+  width: 36px;
+  height: 4px;
+  margin: 0 auto 12px;
+  border-radius: 4px;
+  background: #e2cec0;
+}
+
+.wedding-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: #9b5a42;
+  background: #f8eee7;
+  border: 1px solid #ead6ca;
+  border-radius: 50%;
+  font-size: .8rem;
+  cursor: pointer;
+}
+
+.wedding-close:focus-visible {
+  outline: 2px solid #9b5a42;
+  outline-offset: 3px;
+}
+
+.wedding-date {
+  color: #8f543f;
+  background: #fbe9e2;
+  border-color: #e7b8a6;
+  box-shadow: 0 3px 0 #e7b8a6;
+}
+
+.wedding-date .birth-label {
+  color: #9b5a42;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .wedding-dialog[open] { animation: none; }
   .totals-summary-icon { transition: none; }
   .totals-disclosure[open]:not(.is-closing) .totals { animation: none; }
   .heartbeat-dot, .family-heart, .live-meta strong::before { animation: none; }
@@ -539,12 +664,19 @@ footer {
   .generation-label {
     justify-self: start;
   }
-  .family-heart {
+  .family-heart-wrap {
     justify-self: start;
     margin: 20px 0 20px -40px;
+  }
+  .family-heart {
     width: 28px;
     height: 28px;
     font-size: 18px;
+  }
+  .family-heart-caption {
+    top: 50%;
+    left: calc(100% + 10px);
+    transform: translateY(-50%);
   }
 }
 
@@ -562,7 +694,27 @@ footer {
   .family-grid {
     padding: 24px 0 20px 24px;
   }
-  .family-heart {
+  .family-heart-wrap {
     margin: 16px 0 16px -34px;
+  }
+  .wedding-dialog {
+    width: 100%;
+    max-width: 100%;
+    max-height: 88dvh;
+    margin: auto 0 0;
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+  }
+  .wedding-card {
+    padding: 12px 16px 24px;
+  }
+  .wedding-grab {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) and (prefers-reduced-motion: no-preference) {
+  .wedding-dialog[open] {
+    animation-name: wedding-sheet-in;
   }
 }
