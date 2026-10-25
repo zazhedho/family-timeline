@@ -67,6 +67,17 @@ test('calculates the next birthday and days remaining in WIB', () => {
   );
 });
 
+test('treats the whole WIB birthday as today, before and after the birth hour', () => {
+  const birth = new Date('1996-03-02T10:00:00+07:00');
+
+  assert.equal(formatNextBirthday(birth, new Date('2027-03-02T00:00:00+07:00')), 'Ulang tahun hari ini');
+  assert.equal(formatNextBirthday(birth, new Date('2027-03-02T16:00:00+07:00')), 'Ulang tahun hari ini');
+  assert.equal(formatNextBirthday(birth, new Date('2027-03-02T23:59:59+07:00')), 'Ulang tahun hari ini');
+  assert.equal(formatNextBirthday(birth, new Date('2027-03-03T00:00:00+07:00')), '2 Mar 2028 · 365 hari lagi');
+  // UTC viewer: 2027-03-02T17:00Z is already 3 Mar in WIB
+  assert.equal(getNextBirthday(birth, new Date('2027-03-02T17:00:00Z')).daysUntil, 365);
+});
+
 test('keeps desktop cards independent when a sibling expands', async () => {
   const css = await readFile(new URL('./style.css', import.meta.url), 'utf8');
 

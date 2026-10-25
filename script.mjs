@@ -202,19 +202,20 @@ export function getNextBirthday(birthDate, nowDate = new Date()) {
     year,
     day: Math.min(birth.day, daysInMonth(year, birth.month)),
   };
-  let nextMilliseconds = calendarMilliseconds(birthday) - WIB_OFFSET;
+  let birthdayDate = { ...birthday, hour: 0, minute: 0, second: 0 };
 
-  if (nextMilliseconds <= currentSecond) {
+  // The whole WIB calendar day of the birthday counts as "today".
+  if (calendarMilliseconds(birthdayDate) < calendarMilliseconds(currentDate)) {
     year += 1;
     birthday = {
       ...birth,
       year,
       day: Math.min(birth.day, daysInMonth(year, birth.month)),
     };
-    nextMilliseconds = calendarMilliseconds(birthday) - WIB_OFFSET;
+    birthdayDate = { ...birthday, hour: 0, minute: 0, second: 0 };
   }
 
-  const birthdayDate = { ...birthday, hour: 0, minute: 0, second: 0 };
+  const nextMilliseconds = calendarMilliseconds(birthday) - WIB_OFFSET;
   const daysUntil = Math.round(
     (calendarMilliseconds(birthdayDate) - calendarMilliseconds(currentDate)) / DAY
   );

@@ -169,7 +169,7 @@ Jika jumlah anak lebih dari satu, label kartu otomatis menjadi `Anak Pertama`, `
 - Total menit, jam, hari, dan minggu dibulatkan ke bawah dari total detik.
 - Total bulan dihitung sebagai `tahun lengkap × 12 + bulan lengkap`.
 - Angka tahun utama adalah jumlah tahun kalender lengkap.
-- Ulang tahun berikutnya memakai tanggal dan jam lahir dalam WIB. Jumlah hari tersisa dihitung berdasarkan tanggal kalender WIB.
+- Ulang tahun berikutnya memakai tanggal kalender WIB; sepanjang hari ulang tahun (00.00–23.59 WIB) kartu menampilkan "Ulang tahun hari ini". Jumlah hari tersisa dihitung berdasarkan tanggal kalender WIB.
 - Jika data tanggal lahir invalid atau berada di masa depan, kartu menampilkan pesan error yang terbaca dan tidak menampilkan angka negatif.
 
 ## Deployment ke Vercel
