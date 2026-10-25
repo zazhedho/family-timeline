@@ -22,6 +22,7 @@ Project ini sengaja dibuat sederhana: tidak ada form input, backend, database, l
 - Setiap kali rincian dibuka, keenam total dianimasikan dari nol menuju nilai terkini; panel juga membuka dan menutup dengan lembut.
 - Kartu pernikahan Daddy & Mommy dalam pop-up yang dibuka dari lambang hati di tengah silsilah, lengkap dengan hitungan live sejak akad dan rincian "Jejak Waktu Bersama". Di layar ponsel kartu muncul sebagai panel dari bawah.
 - Hitung mundur anniversary otomatis setiap tahun (ke-2, ke-3, dan seterusnya), dengan "Anniversary ke-N hari ini" sepanjang hari H.
+- Mode perayaan otomatis selama 3 hari untuk setiap ulang tahun dan anniversary: banner ucapan, kartu bercahaya dengan label "HARI INI!", hiasan bendera, dan confetti singkat saat halaman dibuka.
 - Dukungan untuk menambahkan anak kedua, ketiga, dan seterusnya melalui satu array data.
 - Validasi untuk tanggal lahir yang tidak valid atau berada di masa depan.
 - Metadata SEO, canonical URL, structured data, robots, dan sitemap untuk mesin pencari.
@@ -183,6 +184,15 @@ Jika jumlah anak lebih dari satu, label kartu otomatis menjadi `Anak Pertama`, `
 - Angka tahun utama adalah jumlah tahun kalender lengkap.
 - Ulang tahun berikutnya memakai tanggal kalender WIB; sepanjang hari ulang tahun (00.00–23.59 WIB) kartu menampilkan "Ulang tahun hari ini". Jumlah hari tersisa dihitung berdasarkan tanggal kalender WIB.
 - Jika data tanggal lahir invalid atau berada di masa depan, kartu menampilkan pesan error yang terbaca dan tidak menampilkan angka negatif.
+
+## Mode perayaan
+
+- Aktif pada hari H, H+1, dan H+2 menurut tanggal kalender WIB untuk ulang tahun setiap anggota di `PEOPLE` dan untuk anniversary di `WEDDING`. Hari kelahiran atau hari pernikahan itu sendiri tidak dirayakan.
+- Hari H menampilkan "Selamat ulang tahun …!" atau "Happy Anniversary ke-N, Daddy & Mommy!". Hari ke-2 dan ke-3 menampilkan "Masih merayakan …".
+- Kartu yang berulang tahun diberi cahaya keemasan serta label `HARI INI!`, `HARI KE-2`, atau `HARI KE-3`. Saat anniversary, lambang hati bercahaya dan banner dapat diklik untuk membuka kartu pernikahan.
+- Lahir 29 Februari dirayakan mulai 28 Februari pada tahun non-kabisat.
+- Confetti hanya muncul sekitar 4 detik saat halaman dibuka. Mode perayaan menyala atau mati sendiri saat tengah malam tanpa reload, tetapi tanpa confetti.
+- Jika perangkat mengaktifkan pengaturan kurangi animasi (`prefers-reduced-motion`), confetti dan animasi pop-up tidak ditampilkan; hiasan bendera tetap muncul karena statis.
 
 ## Deployment ke Vercel
 

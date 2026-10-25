@@ -203,6 +203,21 @@ test('opens the wedding card as a native dialog from the heart', async () => {
   assert.match(css, /@media \(max-width: 480px\)[\s\S]*\.wedding-dialog\s*\{[^}]*margin:\s*auto 0 0;/);
 });
 
+test('renders celebration banners, bunting and reduced-motion-safe confetti', async () => {
+  const [css, html, script] = await Promise.all([
+    readFile(new URL('./style.css', import.meta.url), 'utf8'),
+    readFile(new URL('./index.html', import.meta.url), 'utf8'),
+    readFile(new URL('./script.mjs', import.meta.url), 'utf8'),
+  ]);
+  assert.match(html, /<div class="celebrations" data-celebrations role="status">/);
+  assert.match(html, /<div class="bunting" data-bunting aria-hidden="true" hidden>/);
+  assert.match(css, /\.celebration-name\s*\{[^}]*white-space:\s*nowrap;/s);
+  assert.match(css, /prefers-reduced-motion: reduce[\s\S]*\.confetti\s*\{[^}]*display:\s*none;/);
+  assert.match(script, /getCelebrations\(PEOPLE, WEDDING/);
+  // "ke-31" must not break after its hyphen on narrow phones
+  assert.match(script, /replace\(\/ke-\\d\+\/, '<span class="celebration-name">\$&<\/span>'\)/);
+});
+
 test('keeps the clock beside the calendar age on mobile', async () => {
   const css = await readFile(new URL('./style.css', import.meta.url), 'utf8');
 

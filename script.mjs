@@ -605,6 +605,67 @@ function updateAgeBlock(scope, result) {
   }
 }
 
+const CONFETTI_COLORS = ['#dca492', '#8fa996', '#dec889', '#c98f7a'];
+let renderedCelebrationKey = null;
+
+function celebrationBannerMarkup(celebration) {
+  const { titleParts: [lead, name, tail], detail } = celebrationCopy(celebration, PEOPLE);
+  const isAnniversary = celebration.kind === 'anniversary';
+  const tag = isAnniversary ? 'button' : 'div';
+  const attributes = isAnniversary ? ' type="button" data-wedding-open' : '';
+
+  return `
+        <${tag} class="celebration-banner"${attributes}>
+          <span class="celebration-emoji" aria-hidden="true">${isAnniversary ? '💞' : '🎉'}</span>
+          <span class="celebration-copy">
+            <strong>${lead.replace(/ke-\d+/, '<span class="celebration-name">$&</span>')}<span class="celebration-name">${name}</span>${tail}</strong>
+            <small>${detail}</small>
+          </span>
+        </${tag}>`;
+}
+
+function renderCelebrations(celebrations) {
+  const key = celebrationKey(celebrations);
+  if (key === renderedCelebrationKey) return;
+  renderedCelebrationKey = key;
+
+  document.querySelector('[data-celebrations]').innerHTML = celebrations.map(celebrationBannerMarkup).join('');
+  document.querySelectorAll('.person-card').forEach((card) => {
+    card.classList.remove('is-celebrating');
+    card.querySelector('.celebration-badge')?.remove();
+  });
+  for (const celebration of celebrations) {
+    if (celebration.kind !== 'birthday') continue;
+    const card = document.querySelector(`[data-person="${celebration.id}"]`);
+    card.classList.add('is-celebrating');
+    card.insertAdjacentHTML('afterbegin', `<span class="celebration-badge">${celebrationCopy(celebration, PEOPLE).badge}</span>`);
+  }
+  document.querySelector('.family-heart')
+    .classList.toggle('is-celebrating', celebrations.some(({ kind }) => kind === 'anniversary'));
+  document.querySelector('[data-bunting]').hidden = !celebrations.length;
+  document.body.toggleAttribute('data-celebrating', celebrations.length > 0);
+}
+
+function launchConfetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const count = matchMedia('(max-width: 480px)').matches ? 16 : 40;
+  const layer = document.createElement('div');
+  layer.className = 'confetti';
+  layer.setAttribute('aria-hidden', 'true');
+  for (let index = 0; index < count; index += 1) {
+    const piece = document.createElement('span');
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = CONFETTI_COLORS[index % CONFETTI_COLORS.length];
+    piece.style.animationDelay = `${Math.random() * 1.2}s`;
+    piece.style.setProperty('--drift', `${Math.round((Math.random() - 0.5) * 120)}px`);
+    piece.style.setProperty('--spin', `${Math.round(360 + Math.random() * 540)}deg`);
+    layer.append(piece);
+  }
+  document.body.append(layer);
+  setTimeout(() => layer.remove(), 4200);
+}
+
 function render(now = new Date()) {
   const grid = document.querySelector('[data-family-grid]');
   if (!grid) return;
@@ -638,6 +699,8 @@ function render(now = new Date()) {
       result.error ?? formatNextBirthday(new Date(person.birthAt), now);
     updateAgeBlock(card, result);
   }
+
+  renderCelebrations(getCelebrations(PEOPLE, WEDDING, now));
 
   const weddingCard = document.querySelector('[data-wedding-card]');
   const weddingAt = new Date(WEDDING.at);
@@ -696,6 +759,8 @@ function drawConnections(grid) {
 
 if (typeof document !== 'undefined') {
   render();
+  // Confetti greets a page load during a celebration; it does not replay at midnight.
+  if (document.body.hasAttribute('data-celebrating')) launchConfetti();
   setInterval(render, 1000);
 
   if ('serviceWorker' in navigator) {
